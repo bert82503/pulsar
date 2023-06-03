@@ -20,13 +20,22 @@ package org.apache.pulsar.common.naming;
 
 /**
  * Enumeration showing if a topic is persistent.
+ * 主题域是否持久化。
  */
 public enum TopicDomain {
-    persistent("persistent"), non_persistent("non-persistent");
+    /**
+     * 持久化
+     */
+    persistent("persistent"),
+    /**
+     * 非持久化
+     */
+    non_persistent("non-persistent"),
+    ;
 
-    private String value;
+    private final String value;
 
-    private TopicDomain(String value) {
+    TopicDomain(String value) {
         this.value = value;
     }
 

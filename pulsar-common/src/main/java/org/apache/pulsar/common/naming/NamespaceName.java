@@ -23,6 +23,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -30,23 +31,49 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Parser of a value from the namespace field provided in configuration.
+ * 配置中提供的命名空间字段的值的解析器。
  */
 public class NamespaceName implements ServiceUnitId {
 
+    /**
+     * 原始的命名空间身份
+     */
     private final String namespace;
 
+    /**
+     * 租户身份
+     */
     private final String tenant;
+    /**
+     * 集群身份
+     */
     private final String cluster;
+    /**
+     * 本地名称
+     */
     private final String localName;
 
-    private static final LoadingCache<String, NamespaceName> cache = CacheBuilder.newBuilder().maximumSize(100000)
-            .expireAfterAccess(30, TimeUnit.MINUTES).build(new CacheLoader<String, NamespaceName>() {
+    /**
+     * 异步加载的本地缓存
+     * <pre>
+     * 命名空间的名称规格：<tenant>/<namespace> 或 <tenant>/<cluster>/<namespace>
+     * 数据模型：{@code <"tenant/namespace", NamespaceName>}
+     * </pre>
+     */
+    private static final LoadingCache<String, NamespaceName> cache = CacheBuilder.newBuilder().maximumSize(100_000)
+            .expireAfterAccess(30, TimeUnit.MINUTES)
+            .build(new CacheLoader<String, NamespaceName>() {
                 @Override
                 public NamespaceName load(String name) throws Exception {
                     return new NamespaceName(name);
                 }
             });
 
+    // 命名空间
+
+    /**
+     * 系统侧的命名空间
+     */
     public static final NamespaceName SYSTEM_NAMESPACE = NamespaceName.get("pulsar/system");
 
     public static NamespaceName get(String tenant, String namespace) {
@@ -65,14 +92,14 @@ public class NamespaceName implements ServiceUnitId {
         }
         try {
             return cache.get(namespace);
-        } catch (ExecutionException e) {
-            throw (RuntimeException) e.getCause();
-        } catch (UncheckedExecutionException e) {
+        } catch (ExecutionException | UncheckedExecutionException e) {
+            // 抛出异常根因
             throw (RuntimeException) e.getCause();
         }
     }
 
     public static Optional<NamespaceName> getIfValid(String namespace) {
+        // 直接从本地缓存读取数据
         NamespaceName ns = cache.getIfPresent(namespace);
         if (ns != null) {
             return Optional.of(ns);
@@ -97,10 +124,11 @@ public class NamespaceName implements ServiceUnitId {
         // or in the legacy format with the cluster name:
         // <tenant>/<cluster>/<namespace>
         try {
-
+            // 命名空间的名称规格
             String[] parts = namespace.split("/");
             if (parts.length == 2) {
                 // New style namespace : <tenant>/<namespace>
+                // 新样式命名空间
                 validateNamespaceName(parts[0], parts[1]);
 
                 tenant = parts[0];
@@ -138,25 +166,31 @@ public class NamespaceName implements ServiceUnitId {
     }
 
     public boolean isGlobal() {
+        // 全局集群
         return cluster == null || Constants.GLOBAL_CLUSTER.equalsIgnoreCase(cluster);
     }
 
+    // 主题名称
+
     public String getPersistentTopicName(String localTopic) {
+        // 持久化的主题名称
         return getTopicName(TopicDomain.persistent, localTopic);
     }
 
     /**
      * Compose the topic name from namespace + topic.
+     * 根据"命名空间+主题"组合主题名称
      *
-     * @param domain
-     * @param topic
-     * @return
+     * @param domain 主题域
+     * @param topic  主题
+     * @return 主题名称
      */
     String getTopicName(TopicDomain domain, String topic) {
         if (domain == null) {
             throw new IllegalArgumentException("invalid null domain");
         }
         NamedEntity.checkName(topic);
+        // 主题名称规格：<TopicDomain>://<namespace>/<topic>
         return String.format("%s://%s/%s", domain.toString(), namespace, topic);
     }
 
@@ -181,7 +215,8 @@ public class NamespaceName implements ServiceUnitId {
     }
 
     public static void validateNamespaceName(String tenant, String namespace) {
-        if ((tenant == null || tenant.isEmpty()) || (namespace == null || namespace.isEmpty())) {
+        if ((tenant == null || tenant.isEmpty())
+                || (namespace == null || namespace.isEmpty())) {
             throw new IllegalArgumentException(
                     String.format("Invalid namespace format. namespace: %s/%s", tenant, namespace));
         }
@@ -190,7 +225,8 @@ public class NamespaceName implements ServiceUnitId {
     }
 
     public static void validateNamespaceName(String tenant, String cluster, String namespace) {
-        if ((tenant == null || tenant.isEmpty()) || (cluster == null || cluster.isEmpty())
+        if ((tenant == null || tenant.isEmpty())
+                || (cluster == null || cluster.isEmpty())
                 || (namespace == null || namespace.isEmpty())) {
             throw new IllegalArgumentException(
                     String.format("Invalid namespace format. namespace: %s/%s/%s", tenant, cluster, namespace));
@@ -212,6 +248,7 @@ public class NamespaceName implements ServiceUnitId {
 
     /**
      * Returns true if this is a V2 namespace prop/namespace-name.
+     *
      * @return true if v2
      */
     public boolean isV2() {

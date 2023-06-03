@@ -23,6 +23,9 @@ package org.apache.pulsar.common.naming;
  */
 public class Constants {
 
+    /**
+     * 全局集群
+     */
     public static final String GLOBAL_CLUSTER = "global";
 
     private Constants() {}

@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import lombok.experimental.UtilityClass;
 
 /**
+ * 命名的实体
  */
 @UtilityClass
 public class NamedEntity {
@@ -30,6 +31,9 @@ public class NamedEntity {
     // allowed characters for property, namespace, cluster and topic names are
     // alphanumeric (a-zA-Z_0-9) and these special chars -=:.
     // % is allowed as part of valid URL encoding
+    /**
+     * 命名的实体模式
+     */
     public static final Pattern NAMED_ENTITY_PATTERN = Pattern.compile("^[-=:.\\w]*$");
 
     public static void checkName(String name) throws IllegalArgumentException {
