@@ -33,52 +33,101 @@ import org.apache.pulsar.common.util.Codec;
 
 /**
  * Encapsulate the parsing of the completeTopicName name.
+ * 封装对完整的主题名称的解析。
  */
 public class TopicName implements ServiceUnitId {
 
+    /**
+     * 公共的租户
+     */
     public static final String PUBLIC_TENANT = "public";
+    /**
+     * 默认的命名空间
+     */
     public static final String DEFAULT_NAMESPACE = "default";
 
+    /**
+     * 分区主题的后缀
+     */
     public static final String PARTITIONED_TOPIC_SUFFIX = "-partition-";
 
+    /**
+     * 完整的主题名称
+     */
     private final String completeTopicName;
 
+    /**
+     * 主题域
+     */
     private final TopicDomain domain;
+    /**
+     * 租户身份
+     */
     private final String tenant;
+    /**
+     * 集群身份
+     */
     private final String cluster;
+    /**
+     * 命名空间部分
+     */
     private final String namespacePortion;
+    /**
+     * 主题的本地名称
+     */
     private final String localName;
 
+    /**
+     * 命名空间的名称的解析器
+     */
     private final NamespaceName namespaceName;
 
+    /**
+     * 分区索引
+     */
     private final int partitionIndex;
 
-    private static final LoadingCache<String, TopicName> cache = CacheBuilder.newBuilder().maximumSize(100000)
-            .expireAfterAccess(30, TimeUnit.MINUTES).build(new CacheLoader<String, TopicName>() {
+    /**
+     * 异步加载的本地缓存
+     * <pre>
+     * 主题名称规格：<domain>://<tenant>/<namespace>/<topic>
+     * 数据模型：{@code <"domain://tenant/namespace/topic", TopicName>}
+     * </pre>
+     */
+    private static final LoadingCache<String, TopicName> cache = CacheBuilder.newBuilder()
+            .maximumSize(100_000)
+            .expireAfterAccess(30, TimeUnit.MINUTES)
+            .build(new CacheLoader<String, TopicName>() {
                 @Override
                 public TopicName load(String name) throws Exception {
                     return new TopicName(name);
                 }
             });
 
+    // 主题名称
+
     public static TopicName get(String domain, NamespaceName namespaceName, String topic) {
+        // 主题名称规格：<domain>://<namespace>/<topic>
         String name = domain + "://" + namespaceName.toString() + '/' + topic;
         return TopicName.get(name);
     }
 
     public static TopicName get(String domain, String tenant, String namespace, String topic) {
+        // 主题名称规格：<domain>://<tenant>/<namespace>/<topic>
         String name = domain + "://" + tenant + '/' + namespace + '/' + topic;
         return TopicName.get(name);
     }
 
-    public static TopicName get(String domain, String tenant, String cluster, String namespace,
-                                String topic) {
+    public static TopicName get(
+            String domain, String tenant, String cluster, String namespace,
+            String topic) {
         String name = domain + "://" + tenant + '/' + cluster + '/' + namespace + '/' + topic;
         return TopicName.get(name);
     }
 
     public static TopicName get(String topic) {
         try {
+            // 从本地缓存获取
             return cache.get(topic);
         } catch (ExecutionException | UncheckedExecutionException e) {
             throw (RuntimeException) e.getCause();
@@ -108,11 +157,13 @@ public class TopicName implements ServiceUnitId {
             // The topic name can be in two different forms, one is fully qualified topic name,
             // the other one is short topic name
             if (!completeTopicName.contains("://")) {
+                // 简短的主题名称
                 // The short topic name can be:
                 // - <topic>
                 // - <property>/<namespace>/<topic>
                 String[] parts = StringUtils.split(completeTopicName, '/');
                 if (parts.length == 3) {
+                    // 完整的主题名称
                     completeTopicName = TopicDomain.persistent.name() + "://" + completeTopicName;
                 } else if (parts.length == 1) {
                     completeTopicName = TopicDomain.persistent.name() + "://"
@@ -124,6 +175,7 @@ public class TopicName implements ServiceUnitId {
                 }
             }
 
+            // 完全限定的主题名称
             // The fully qualified topic name can be in two different forms:
             // new:    persistent://tenant/namespace/topic
             // legacy: persistent://tenant/cluster/namespace/topic
@@ -133,6 +185,7 @@ public class TopicName implements ServiceUnitId {
 
             String rest = parts.get(1);
 
+            // 主题名称的其余部分
             // The rest of the name can be in different forms:
             // new:    tenant/namespace/<localName>
             // legacy: tenant/cluster/namespace/<localName>
@@ -143,6 +196,7 @@ public class TopicName implements ServiceUnitId {
 
             parts = Splitter.on("/").limit(4).splitToList(rest);
             if (parts.size() == 3) {
+                // 新的主题名称
                 // New topic name without cluster name
                 this.tenant = parts.get(0);
                 this.cluster = null;
@@ -170,6 +224,7 @@ public class TopicName implements ServiceUnitId {
         } catch (NullPointerException e) {
             throw new IllegalArgumentException("Invalid topic name: " + completeTopicName, e);
         }
+        // 完整的主题名称
         if (isV2()) {
             this.completeTopicName = String.format("%s://%s/%s/%s",
                                                    domain, tenant, namespacePortion, localName);
@@ -184,8 +239,11 @@ public class TopicName implements ServiceUnitId {
         return TopicDomain.persistent == domain;
     }
 
+    // 命名空间
+
     /**
      * Extract the namespace portion out of a completeTopicName name.
+     * 从完整的主题名称中提取命名空间的部分。
      *
      * <p>Works both with old & new convention.
      *
@@ -230,10 +288,15 @@ public class TopicName implements ServiceUnitId {
         return Codec.encode(localName);
     }
 
+    // 分区主题
+
     public TopicName getPartition(int index) {
+        // 分区索引
         if (index == -1 || this.toString().endsWith(PARTITIONED_TOPIC_SUFFIX + index)) {
             return this;
         }
+        // 主题-topic
+        // 分区名称规格：<completeTopicName>-partition-<partitionIndex>
         String partitionName = this.toString() + PARTITIONED_TOPIC_SUFFIX + index;
         return get(partitionName);
     }
@@ -241,6 +304,7 @@ public class TopicName implements ServiceUnitId {
     /**
      * @return partition index of the completeTopicName.
      * It returns -1 if the completeTopicName (topic) is not partitioned.
+     * 完整的主题名称（主题）是未分区
      */
     public int getPartitionIndex() {
         return partitionIndex;
@@ -251,16 +315,19 @@ public class TopicName implements ServiceUnitId {
     }
 
     /**
+     * 对于主题中的分区，返回基本的分区主题名称。
      * For partitions in a topic, return the base partitioned topic name.
      * Eg:
      * <ul>
      *  <li><code>persistent://prop/cluster/ns/my-topic-partition-1</code> -->
-     *  <code>persistent://prop/cluster/ns/my-topic</code>
-     *  <li><code>persistent://prop/cluster/ns/my-topic</code> --> <code>persistent://prop/cluster/ns/my-topic</code>
+     *      <code>persistent://prop/cluster/ns/my-topic</code>
+     *  <li><code>persistent://prop/cluster/ns/my-topic</code> -->
+     *      <code>persistent://prop/cluster/ns/my-topic</code>
      * </ul>
      */
     public String getPartitionedTopicName() {
         if (isPartitioned()) {
+            // 分区的主题名称
             return completeTopicName.substring(0, completeTopicName.lastIndexOf("-partition-"));
         } else {
             return completeTopicName;
@@ -293,6 +360,7 @@ public class TopicName implements ServiceUnitId {
     }
 
     /**
+     * 获取主题的分区名称。
      * A helper method to get a partition name of a topic in String.
      * @return topic + "-partition-" + partition.
      */
@@ -301,6 +369,7 @@ public class TopicName implements ServiceUnitId {
     }
 
     /**
+     * 获取主题的管控请求路径。
      * Returns the http rest path for use in the admin web service.
      * Eg:
      *   * "persistent/my-tenant/my-namespace/my-topic"
@@ -323,10 +392,13 @@ public class TopicName implements ServiceUnitId {
 
     /**
      * Returns the name of the persistence resource associated with the completeTopicName.
+     * 返回与完整的主题名称关联的持久化资源的名称。
      *
      * @return the relative path to be used in persistence
      */
     public String getPersistenceNamingEncoding() {
+        // 协议是 domain://tenant/namespace/topic
+        // 持久化顺序是 tenant/namespace/domain/topic
         // The convention is: domain://tenant/namespace/topic
         // We want to persist in the order: tenant/namespace/domain/topic
 
@@ -341,13 +413,14 @@ public class TopicName implements ServiceUnitId {
 
     /**
      * Get a string suitable for completeTopicName lookup.
+     * 获取适合完整主题名称的查找名称。
      *
      * <p>Example:
      *
      * <p>persistent://tenant/cluster/namespace/completeTopicName ->
      *   persistent/tenant/cluster/namespace/completeTopicName
      *
-     * @return
+     * @return 查找名称
      */
     public String getLookupName() {
         if (isV2()) {
@@ -362,6 +435,7 @@ public class TopicName implements ServiceUnitId {
     }
 
     public String getSchemaName() {
+        // 模式名称 tenant/namespace/topic
         return getTenant()
             + "/" + getNamespacePortion()
             + "/" + TopicName.get(getPartitionedTopicName()).getEncodedLocalName();
@@ -369,6 +443,7 @@ public class TopicName implements ServiceUnitId {
 
     @Override
     public String toString() {
+        // 完整的主题名称
         return completeTopicName;
     }
 

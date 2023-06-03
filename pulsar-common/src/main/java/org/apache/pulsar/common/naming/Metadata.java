@@ -22,20 +22,24 @@ import java.util.Map;
 
 /**
  * Validator for metadata configuration.
+ * 元数据配置的验证器。
  */
 public class Metadata {
 
     private Metadata() {}
 
-    public static void validateMetadata(Map<String, String> metadata,
-                                        int maxConsumerMetadataSize) throws IllegalArgumentException {
+    // 消费者元数据的最大大小
+
+    public static void validateMetadata(
+            Map<String, String> metadata, int maxConsumerMetadataSize)
+            throws IllegalArgumentException {
         if (metadata == null) {
             return;
         }
 
         int size = 0;
-        for (Map.Entry<String, String> e : metadata.entrySet()) {
-            size += (e.getKey().length() + e.getValue().length());
+        for (Map.Entry<String, String> entry : metadata.entrySet()) {
+            size += (entry.getKey().length() + entry.getValue().length());
             if (size > maxConsumerMetadataSize) {
                 throw new IllegalArgumentException(getErrorMessage(maxConsumerMetadataSize));
             }

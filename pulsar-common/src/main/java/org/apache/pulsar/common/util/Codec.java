@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 基于 url 的字符串编解码
  */
 public class Codec {
     private static final Logger LOG = LoggerFactory.getLogger(Codec.class);

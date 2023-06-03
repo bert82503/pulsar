@@ -29,6 +29,7 @@ public interface ServiceUnitId {
 
     /**
      * Return the namespace object that this <code>ServiceUnitId</code> belongs to.
+     * 命名空间
      *
      * @return NamespaceName object
      */

@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class NamespaceName implements ServiceUnitId {
 
     /**
-     * 原始的命名空间身份
+     * 完整的命名空间身份
      */
     private final String namespace;
 
@@ -49,7 +49,7 @@ public class NamespaceName implements ServiceUnitId {
      */
     private final String cluster;
     /**
-     * 本地名称
+     * 命名空间的本地名称
      */
     private final String localName;
 
@@ -60,7 +60,8 @@ public class NamespaceName implements ServiceUnitId {
      * 数据模型：{@code <"tenant/namespace", NamespaceName>}
      * </pre>
      */
-    private static final LoadingCache<String, NamespaceName> cache = CacheBuilder.newBuilder().maximumSize(100_000)
+    private static final LoadingCache<String, NamespaceName> cache = CacheBuilder.newBuilder()
+            .maximumSize(100_000)
             .expireAfterAccess(30, TimeUnit.MINUTES)
             .build(new CacheLoader<String, NamespaceName>() {
                 @Override
@@ -91,6 +92,7 @@ public class NamespaceName implements ServiceUnitId {
             throw new IllegalArgumentException("Invalid null namespace: " + namespace);
         }
         try {
+            // 从本地缓存获取
             return cache.get(namespace);
         } catch (ExecutionException | UncheckedExecutionException e) {
             // 抛出异常根因
@@ -127,8 +129,8 @@ public class NamespaceName implements ServiceUnitId {
             // 命名空间的名称规格
             String[] parts = namespace.split("/");
             if (parts.length == 2) {
+                // 新样式的命名空间
                 // New style namespace : <tenant>/<namespace>
-                // 新样式命名空间
                 validateNamespaceName(parts[0], parts[1]);
 
                 tenant = parts[0];
@@ -196,6 +198,7 @@ public class NamespaceName implements ServiceUnitId {
 
     @Override
     public String toString() {
+        // 完整的命名空间
         return namespace;
     }
 
