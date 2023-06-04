@@ -24,26 +24,34 @@ import java.util.Set;
 
 /**
  * Encapsulate the parsing of the completeTopicName name.
+ * 封装对完整主题名称的解析。
+ * 系统侧的主题名称管控
  */
 public class SystemTopicNames {
 
+    // 本地主题名称
+
     /**
      * Local topic name for the namespace events.
+     * 命名空间事件的本地主题名称
      */
     public static final String NAMESPACE_EVENTS_LOCAL_NAME = "__change_events";
 
     /**
      * Local topic name for the transaction buffer snapshot.
+     * 事务缓冲区快照
      */
     public static final String TRANSACTION_BUFFER_SNAPSHOT = "__transaction_buffer_snapshot";
 
     /**
      * Local topic name for the transaction buffer snapshot segments.
+     * 事务缓冲区快照段
      */
     public static final String TRANSACTION_BUFFER_SNAPSHOT_SEGMENTS = "__transaction_buffer_snapshot_segments";
 
     /**
      * Local topic name for the transaction buffer snapshot indexes.
+     * 事务缓冲区快照索引
      */
     public static final String TRANSACTION_BUFFER_SNAPSHOT_INDEXES = "__transaction_buffer_snapshot_indexes";
 
@@ -53,18 +61,31 @@ public class SystemTopicNames {
 
     /**
      * The set of all local topic names declared above.
+     * 所有本地事件主题名称的集合
+     * 事件系统侧的主题
      */
     public static final Set<String> EVENTS_TOPIC_NAMES =
             Collections.unmodifiableSet(Sets.newHashSet(NAMESPACE_EVENTS_LOCAL_NAME, TRANSACTION_BUFFER_SNAPSHOT,
                     TRANSACTION_BUFFER_SNAPSHOT_INDEXES, TRANSACTION_BUFFER_SNAPSHOT_SEGMENTS));
 
 
+    // 系统侧的命名空间
+
+    /**
+     * 事务协调器分配
+     */
     public static final TopicName TRANSACTION_COORDINATOR_ASSIGN = TopicName.get(TopicDomain.persistent.value(),
             NamespaceName.SYSTEM_NAMESPACE, "transaction_coordinator_assign");
 
+    /**
+     * 事务协调器日志
+     */
     public static final TopicName TRANSACTION_COORDINATOR_LOG = TopicName.get(TopicDomain.persistent.value(),
             NamespaceName.SYSTEM_NAMESPACE, "__transaction_log_");
 
+    /**
+     * 资源使用情况
+     */
     public static final TopicName RESOURCE_USAGE_TOPIC = TopicName.get(TopicDomain.non_persistent.value(),
             NamespaceName.SYSTEM_NAMESPACE, "resource-usage");
 
