@@ -25,16 +25,36 @@ import lombok.NoArgsConstructor;
 
 /**
  * Configuration to aggregate various authentication params.
+ * 用于聚合各种身份认证参数的配置
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthenticationConfig {
+    /**
+     * 客户端身份认证插件
+     */
     private String clientAuthenticationPlugin;
+    /**
+     * 客户端身份认证参数列表
+     */
     private String clientAuthenticationParameters;
+    // TLS
+    /**
+     * TLS认证证书文件路径
+     */
     private String tlsTrustCertsFilePath;
+    /**
+     * 使用TLS？
+     */
     private boolean useTls;
+    /**
+     * 允许非安全连接？
+     */
     private boolean tlsAllowInsecureConnection;
+    /**
+     * 启用主机名称验证？
+     */
     private boolean tlsHostnameVerificationEnable;
 }
