@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Basic information about a Pulsar function.
+ * 轻量级计算定义
  */
 @Data
 @NoArgsConstructor
@@ -30,16 +31,19 @@ public class FunctionDefinition {
 
     /**
      * The name of the function type.
+     * 轻量级计算类型的名称
      */
     private String name;
 
     /**
      * Description to be used for user help.
+     * 用户帮助描述
      */
     private String description;
 
     /**
      * The class name for the function implementation.
+     * 轻量级计算实现类的完整限定类名
      *
      * <p>If not defined, it will be assumed this function cannot act as a data.
      */
