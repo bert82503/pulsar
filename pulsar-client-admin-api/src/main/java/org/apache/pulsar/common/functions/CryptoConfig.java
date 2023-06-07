@@ -29,6 +29,7 @@ import org.apache.pulsar.client.api.ProducerCryptoFailureAction;
 
 /**
  * Configuration of the producer inside the function.
+ * 轻量级计算内的生产者加密配置
  */
 @Data
 @Builder
@@ -36,11 +37,29 @@ import org.apache.pulsar.client.api.ProducerCryptoFailureAction;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class CryptoConfig {
+    /**
+     * 加密密钥读取器的类名称
+     */
     private String cryptoKeyReaderClassName;
+    /**
+     * 加密密钥读取器的配置集
+     */
     private Map<String, Object> cryptoKeyReaderConfig;
 
+    /**
+     * 加密密钥列表
+     */
     private String[] encryptionKeys;
+
+    // 失败操作
+
+    /**
+     * 生产者加密的失败操作
+     */
     private ProducerCryptoFailureAction producerCryptoFailureAction;
 
+    /**
+     * 消费者加密的失败操作
+     */
     private ConsumerCryptoFailureAction consumerCryptoFailureAction;
 }
