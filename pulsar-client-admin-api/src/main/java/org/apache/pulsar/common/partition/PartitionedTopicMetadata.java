@@ -22,18 +22,33 @@ import java.util.Map;
 
 /**
  * Metadata of a partitioned topic.
+ * 分区主题的元数据
  */
 public class PartitionedTopicMetadata {
+
+    /**
+     * 媒介类型
+     */
     public static final String MEDIA_TYPE = "application/vnd.partitioned-topic-metadata+json";
 
-    /* Number of partitions for the topic */
+    /**
+     * Number of partitions for the topic
+     * 主题的分区数量
+     */
     public int partitions;
+    /**
+     * 删除标识
+     */
     public boolean deleted;
 
-    /* Topic properties */
+    /**
+     * Topic properties
+     * 主题的属性集
+     */
     public Map<String, String> properties;
 
     public PartitionedTopicMetadata() {
+        // 非分区主题
         this(0);
     }
 
@@ -49,6 +64,7 @@ public class PartitionedTopicMetadata {
 
     /**
      * A topic with '0' partitions is treated like non-partitioned topic.
+     * 非分区主题
      */
     public static final int NON_PARTITIONED = 0;
 

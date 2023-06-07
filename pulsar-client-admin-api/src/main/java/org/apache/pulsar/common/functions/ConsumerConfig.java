@@ -46,12 +46,12 @@ public class ConsumerConfig {
      */
     private boolean isRegexPattern;
     /**
-     * 协议的配置属性集
+     * 协议的属性集
      */
     @Builder.Default
     private Map<String, String> schemaProperties = new HashMap<>();
     /**
-     * 消费者的配置属性集
+     * 消费者的属性集
      */
     @Builder.Default
     private Map<String, String> consumerProperties = new HashMap<>();
