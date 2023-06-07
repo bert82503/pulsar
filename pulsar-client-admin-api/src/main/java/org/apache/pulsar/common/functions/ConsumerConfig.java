@@ -26,9 +26,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-
 /**
  * Configuration of a consumer.
+ * 消费者的配置
  */
 @Data
 @Builder
@@ -36,19 +36,40 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class ConsumerConfig {
+    /**
+     * 协议类型
+     */
     private String schemaType;
     private String serdeClassName;
+    /**
+     * 正则表达式模式匹配？
+     */
     private boolean isRegexPattern;
+    /**
+     * 协议的配置属性集
+     */
     @Builder.Default
     private Map<String, String> schemaProperties = new HashMap<>();
+    /**
+     * 消费者的配置属性集
+     */
     @Builder.Default
     private Map<String, String> consumerProperties = new HashMap<>();
+    /**
+     * 接收方的队列大小
+     */
     private Integer receiverQueueSize;
+    /**
+     * 加密配置
+     */
     private CryptoConfig cryptoConfig;
+    /**
+     * 池消息？
+     * 批量消息
+     */
     private boolean poolMessages;
 
     public ConsumerConfig(String schemaType) {
         this.schemaType = schemaType;
     }
-
 }
