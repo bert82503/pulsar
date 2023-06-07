@@ -27,6 +27,7 @@ import org.apache.pulsar.client.api.CompressionType;
 
 /**
  * Configuration of the producer inside the function.
+ * 轻量级计算内的生产者配置
  */
 @Data
 @Builder
@@ -34,10 +35,28 @@ import org.apache.pulsar.client.api.CompressionType;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class ProducerConfig {
+    /**
+     * 最大待处理消息数
+     */
     private Integer maxPendingMessages;
+    /**
+     * 跨分区的最大待处理消息数
+     */
     private Integer maxPendingMessagesAcrossPartitions;
+    /**
+     * 使用线程本地生产者？
+     */
     private Boolean useThreadLocalProducers;
+    /**
+     * 轻量级计算内的生产者加密配置
+     */
     private CryptoConfig cryptoConfig;
+    /**
+     * 批量构建者
+     */
     private String batchBuilder;
+    /**
+     * 压缩类型
+     */
     private CompressionType compressionType;
 }
