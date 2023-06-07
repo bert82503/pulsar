@@ -25,15 +25,25 @@ import lombok.NoArgsConstructor;
 
 /**
  * Function state.
+ * 轻量级计算状态
  */
 @Data
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class FunctionState {
+    /**
+     * 键
+     */
     private String key;
+    /**
+     * 值
+     */
     private String stringValue;
     private byte[] byteValue;
     private Long numberValue;
+    /**
+     * 版本号
+     */
     private Long version;
 }
